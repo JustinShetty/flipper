@@ -16,7 +16,7 @@ MD5Builder md5;
 
 void setup() {
   s1.attach(SERVO_PIN);
-  s1.write(0);
+  s1.write(60);
   server_init();
 }
 
@@ -49,6 +49,7 @@ void server_init() {
     Serial.println("MDNS responder started");
   }
 
+  server.on("/status", handleStatus);
   server.on("/toggle", handleToggle);
   server.onNotFound(handleNotFound);
 
@@ -56,7 +57,15 @@ void server_init() {
   Serial.println("HTTP server started");
 }
 
-void handleToggle() {
+void handleStatus(){
+  String req = String(millis()) + ": ";
+  req += (server.method() == HTTP_GET) ? "GET" : "POST";
+  Serial.println(req);
+  
+  server.send(200,"text/plain",String(s1.read()));
+}
+
+void handleToggle(){
   String req = String(millis()) + ": ";
   req += (server.method() == HTTP_GET) ? "GET" : "POST";
   Serial.println(req);
@@ -83,7 +92,7 @@ void handleToggle() {
   server.send(200, "text/plain", message);
 }
 
-void handleNotFound() {
+void handleNotFound(){
   String req = String(millis()) + ": ";
   req += (server.method() == HTTP_GET) ? "GET" : "POST";
   Serial.println(req);

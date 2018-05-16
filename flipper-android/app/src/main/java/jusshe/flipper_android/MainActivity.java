@@ -30,26 +30,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void toggleMethod(View view) {
-//        Toast.makeText(getApplicationContext(),"Hello!", Toast.LENGTH_LONG).show();
         final TextView tView = (TextView) findViewById(R.id.tView);
 
         //Instantiate RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "http://192.168.1.12/toggle";
-//        String url = "http://google.com/";
 
         //Build a request
         StringRequest toggleRequest = new StringRequest(Request.Method.POST, url,
             new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
-                    // Display the first 500 characters of the response string.
                    tView.setText(response);
                 }
             }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                tView.setText("That didn't work!");
+                tView.setText("Server Error");
             }
         }){
             @Override
