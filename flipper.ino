@@ -48,19 +48,11 @@ void server_init(){
     Serial.println("MDNS responder started");
   }
 
-  server.on("/", handleRoot);
   server.on("/toggle", handleToggle);
   server.onNotFound(handleNotFound);
 
   server.begin();
   Serial.println("HTTP server started");
-}
-
-void handleRoot(){
-  String req = String(millis()) + ": ";
-  req += (server.method() == HTTP_GET)?"GET":"POST";
-  Serial.println(req);
-  server.send(200, "text/plain", "Index.");
 }
 
 void handleToggle(){
