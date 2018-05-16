@@ -12,20 +12,21 @@ const char* password = "";
 
 ESP8266WebServer server(80);
 Servo s1;
+MD5Builder md5;
 
-void setup(){
+void setup() {
   s1.attach(SERVO_PIN);
   s1.write(0);
   server_init();
 }
 
-void loop(){
+void loop() {
   server.handleClient();
 }
 
-void server_init(){
+void server_init() {
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN,1);
+  digitalWrite(LED_BUILTIN, 1);
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -44,7 +45,7 @@ void server_init(){
 
   //Multicast DNS is unsupported on Windows :(
   //routes http://esp8266-server.local/ to the local IP
-  if (MDNS.begin("esp8266-server", WiFi.localIP())) { 
+  if (MDNS.begin("esp8266-server", WiFi.localIP())) {
     Serial.println("MDNS responder started");
   }
 
@@ -55,40 +56,47 @@ void server_init(){
   Serial.println("HTTP server started");
 }
 
-void handleToggle(){
+void handleToggle() {
   String req = String(millis()) + ": ";
-  req += (server.method() == HTTP_GET)?"GET":"POST";
+  req += (server.method() == HTTP_GET) ? "GET" : "POST";
   Serial.println(req);
+
+  md5.begin();
+  md5.add(server.arg(0));
+  md5.calculate();
+  if(server.argName(0) != "pass" && md5.toString() != "41f984bb082af806e510740db289125d"){
+    server.send(200,"text/plain","Access denied.");
+    return;
+  }
+  
   String message;
   message += "New Position: ";
-  
   int pos = s1.read();
-  if(pos == 180){
-    s1.write(0);
-    message += "0.";
+  if (pos == 120) {
+    s1.write(60);
+    message += "60";
   }
-  else{
-    s1.write(180);
-    message += "180.";
+  else {
+    s1.write(120);
+    message += "120";
   }
-
-  server.send(200,"text/plain", message);
+  server.send(200, "text/plain", message);
 }
 
-void handleNotFound(){
+void handleNotFound() {
   String req = String(millis()) + ": ";
-  req += (server.method() == HTTP_GET)?"GET":"POST";
+  req += (server.method() == HTTP_GET) ? "GET" : "POST";
   Serial.println(req);
-  
+
   String message = "Unhandled Request\n\n";
   message += "URI: ";
   message += server.uri();
   message += "\nMethod: ";
-  message += (server.method() == HTTP_GET)?"GET":"POST";
+  message += (server.method() == HTTP_GET) ? "GET" : "POST";
   message += "\nArguments: ";
   message += server.args();
   message += "\n";
-  for (uint8_t i=0; i<server.args(); i++){
+  for (uint8_t i = 0; i < server.args(); i++) {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
   server.send(404, "text/plain", message);
